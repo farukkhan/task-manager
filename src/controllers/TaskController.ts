@@ -18,8 +18,24 @@ async GetTasks(req: Request, res: Response){
 async GetTaskById(req: Request, res: Response){
  const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
  const id = parseInt(idParam, 0);
+
+ if(id==0 || isNaN(id))
+ {
+  res.status(400).json({ error: "Invalid task ID" });
+  return;
+ }
+
  const task = await this.taskService.getTaskById(id);
- res.status(200).json(task);
+
+if(task === null)
+ {
+  res.status(404).json({ error: "Task not found" });
+ }
+ else
+ {
+  res.status(200).json(task);
+ }
+
 }
 
 async CreateTask(req: Request, res: Response){
