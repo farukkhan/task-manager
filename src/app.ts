@@ -1,15 +1,13 @@
+import "reflect-metadata";
 import express, { Request, Response } from "express";
 import {TaskController} from "./controllers/TaskController";
-import {TaskService} from "./services/TaskService";
-import { TaskRepository } from "./repositories/TaskRepository";
-import { ITaskRepository } from "./repositories/ITaskRepository";
+import { container } from "./containers/container";
 
 
 const app = express();
+app.use(express.json());
 
-const taskRepository: ITaskRepository = new TaskRepository();
-const taskService =new TaskService(taskRepository);
-const taskController = new TaskController(taskService);
+const taskController = container.resolve(TaskController);
 
 
 app.get("/api/health", (req: Request, res: Response) => {
@@ -18,9 +16,15 @@ app.get("/api/health", (req: Request, res: Response) => {
 
 
 app.get("/api/tasks", async (req: Request, res: Response) => {
+ await taskController.GetTasks(req, res); 
+});
 
- await taskController.GetTasks(req, res);
- 
+app.get("/api/tasks/:id", async (req: Request, res: Response) => {
+  await taskController.GetTaskById(req, res);
+});
+
+app.post("/api/tasks", async (req: Request, res: Response) => {
+  await taskController.CreateTask(req, res);
 });
 
 app.listen(3000, () => {

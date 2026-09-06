@@ -6,4 +6,6 @@ export interface ITaskRepository{
 
  getTaskById(id:number): Promise<Task | null>;
 
+ createTask(title: string): Promise<Task>;
+
 }

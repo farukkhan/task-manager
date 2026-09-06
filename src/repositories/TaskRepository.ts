@@ -1,15 +1,20 @@
 import {ITaskRepository} from "./ITaskRepository";
 import { Task } from "../models/Task";
+import {injectable} from "tsyringe";
+import { prisma } from "../database/prisma";
 
-
+@injectable()
 export class TaskRepository implements ITaskRepository {
-  private tasks: Task[] = [{id:1, title:"Task 1", completed:false}, {id:2, title:"Task 2", completed:true}];
 
   async getTasks(): Promise<Task[]> {
-    return this.tasks;
+    return prisma.task.findMany();
   }
 
   async getTaskById(id: number): Promise<Task | null> {
-    return this.tasks.find(task => task.id === id) || null;
+    return prisma.task.findUnique({ where: { id } });
+  }
+
+  async createTask(title: string): Promise<Task> {
+    return prisma.task.create({ data: {title} });
   }
 }
