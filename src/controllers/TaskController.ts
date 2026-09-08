@@ -3,10 +3,14 @@ import { TaskService } from "../services/TaskService";
 import { inject, injectable } from "tsyringe";
 import { IdParser } from "../validators/IdParser";
 import { TaskValidator } from "../validators/TaskValidator";
+import { ILogger } from "../logging/ILogger";
 
 @injectable()
 export class TaskController {
-  constructor(@inject(TaskService) private taskService: TaskService) {}
+  constructor(
+    @inject(TaskService) private taskService: TaskService,
+    @inject("ILogger") private logger: ILogger,
+  ) {}
 
   async getTasks(req: Request, res: Response) {
     const tasks = await this.taskService.getTasks();
@@ -19,6 +23,7 @@ export class TaskController {
 
     if (!isValid) {
       res.status(400).json({ error: "Invalid task ID" });
+      this.logger.warn(`Invalid task ID received: ${req.params.id}`);
       return;
     }
 
@@ -26,6 +31,7 @@ export class TaskController {
 
     if (task === null) {
       res.status(404).json({ error: "Task not found" });
+      this.logger.warn(`Task not found with Id: ${req.params.id}`);
     } else {
       res.status(200).json(task);
     }
@@ -37,6 +43,7 @@ export class TaskController {
     const titleValidation = TaskValidator.validateTitle(title);
     if (!titleValidation.isValid) {
       res.status(400).json({ error: titleValidation.error });
+      this.logger.warn(`Invalid task title received: ${title}`);
       return;
     }
 
@@ -49,6 +56,7 @@ export class TaskController {
 
     if (!isValid) {
       res.status(400).json({ error: "Invalid task ID" });
+      this.logger.warn(`Invalid task ID received: ${req.params.id}`);
       return;
     }
 
@@ -57,6 +65,9 @@ export class TaskController {
     const updateValidation = TaskValidator.validateUpdateData(title, completed);
     if (!updateValidation.isValid) {
       res.status(400).json({ error: updateValidation.error });
+      this.logger.warn(
+        `Invalid task update data received: ${JSON.stringify(req.body)}`,
+      );
       return;
     }
 
@@ -78,12 +89,14 @@ export class TaskController {
 
     if (!isValid) {
       res.status(400).json({ error: "Invalid task ID" });
+      this.logger.warn(`Invalid task ID received: ${req.params.id}`);
       return;
     }
 
     const isDeleted = await this.taskService.deleteTask(id);
     if (!isDeleted) {
       res.status(404).json({ error: "Task not found" });
+      this.logger.warn(`Task not found with Id: ${req.params.id}`);
     } else {
       res.status(204).send();
     }
