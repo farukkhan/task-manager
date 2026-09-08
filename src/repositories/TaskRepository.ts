@@ -1,11 +1,10 @@
-import {ITaskRepository} from "./ITaskRepository";
+import { ITaskRepository } from "./ITaskRepository";
 import { Task } from "../models/Task";
-import {injectable} from "tsyringe";
+import { injectable } from "tsyringe";
 import { prisma } from "../database/prisma";
 
 @injectable()
 export class TaskRepository implements ITaskRepository {
-
   async getTasks(): Promise<Task[]> {
     return prisma.task.findMany();
   }
@@ -15,11 +14,15 @@ export class TaskRepository implements ITaskRepository {
   }
 
   async createTask(title: string): Promise<Task> {
-    return prisma.task.create({ data: {title} });
+    return prisma.task.create({ data: { title } });
   }
 
-  async updateTask(id: number, title: string, completed: boolean): Promise<Task | null> {
-    const task= await prisma.task.findUnique({ where: { id } });
+  async updateTask(
+    id: number,
+    title: string,
+    completed: boolean,
+  ): Promise<Task | null> {
+    const task = await prisma.task.findUnique({ where: { id } });
 
     if (!task) {
       return null;
@@ -34,7 +37,6 @@ export class TaskRepository implements ITaskRepository {
   }
 
   async deleteTask(id: number): Promise<boolean> {
-  
     const task = await prisma.task.findUnique({ where: { id } });
 
     if (!task) {

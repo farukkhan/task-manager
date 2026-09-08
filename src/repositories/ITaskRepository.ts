@@ -1,15 +1,17 @@
 import { Task } from "../models/Task";
 
-export interface ITaskRepository{
+export interface ITaskRepository {
+  getTasks(): Promise<Task[]>;
 
- getTasks(): Promise<Task[]>;
+  getTaskById(id: number): Promise<Task | null>;
 
- getTaskById(id:number): Promise<Task | null>;
+  createTask(title: string): Promise<Task>;
 
- createTask(title: string): Promise<Task>;
+  updateTask(
+    id: number,
+    title: string,
+    completed: boolean,
+  ): Promise<Task | null>;
 
- updateTask(id:number, title:string, completed : boolean): Promise<Task | null>;
-
- deleteTask(id:number): Promise<boolean>;
-
+  deleteTask(id: number): Promise<boolean>;
 }
