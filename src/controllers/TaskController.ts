@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { TaskService } from "../services/TaskService";
 import { inject, injectable } from "tsyringe";
 import { IdParser } from "../validators/IdParser";
+import { TaskValidator } from "../validators/TaskValidator";
 
 @injectable()
 export class TaskController {
@@ -32,6 +33,13 @@ export class TaskController {
 
   async CreateTask(req: Request, res: Response) {
     const { title } = req.body;
+
+    const titleValidation = TaskValidator.ValidateTitle(title);
+    if (!titleValidation.isValid) {
+      res.status(400).json({ error: titleValidation.error });
+      return;
+    }
+
     const createdTask = await this.taskService.createTask(title);
     res.status(201).json(createdTask);
   }
@@ -46,7 +54,17 @@ export class TaskController {
 
     const { title, completed } = req.body;
 
-    const updatedTask = await this.taskService.updateTask(id, title, completed);
+    const updateValidation = TaskValidator.ValidateUpdateData(title, completed);
+    if (!updateValidation.isValid) {
+      res.status(400).json({ error: updateValidation.error });
+      return;
+    }
+
+    const updatedTask = await this.taskService.updateTask(
+      id,
+      updateValidation.value.title,
+      updateValidation.value.completed,
+    );
 
     if (!updatedTask) {
       res.status(404).json({ error: "Task not found" });
