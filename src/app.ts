@@ -1,22 +1,19 @@
 import "reflect-metadata";
 import express, { Request, Response } from "express";
-import {TaskController} from "./controllers/TaskController";
+import { TaskController } from "./controllers/TaskController";
 import { container } from "./containers/container";
-
 
 const app = express();
 app.use(express.json());
 
 const taskController = container.resolve(TaskController);
 
-
 app.get("/api/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
-
 app.get("/api/tasks", async (req: Request, res: Response) => {
- await taskController.GetTasks(req, res); 
+  await taskController.GetTasks(req, res);
 });
 
 app.get("/api/tasks/:id", async (req: Request, res: Response) => {
@@ -25,6 +22,14 @@ app.get("/api/tasks/:id", async (req: Request, res: Response) => {
 
 app.post("/api/tasks", async (req: Request, res: Response) => {
   await taskController.CreateTask(req, res);
+});
+
+app.put("/api/tasks/:id", async (req: Request, res: Response) => {
+  await taskController.UpdateTask(req, res);
+});
+
+app.delete("/api/tasks/:id", async (req: Request, res: Response) => {
+  await taskController.DeleteTask(req, res);
 });
 
 app.listen(3000, () => {

@@ -8,4 +8,8 @@ export interface ITaskRepository{
 
  createTask(title: string): Promise<Task>;
 
+ updateTask(id:number, title:string, completed : boolean): Promise<Task | null>;
+
+ deleteTask(id:number): Promise<boolean>;
+
 }

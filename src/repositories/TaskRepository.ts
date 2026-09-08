@@ -17,4 +17,32 @@ export class TaskRepository implements ITaskRepository {
   async createTask(title: string): Promise<Task> {
     return prisma.task.create({ data: {title} });
   }
+
+  async updateTask(id: number, title: string, completed: boolean): Promise<Task | null> {
+    const task= await prisma.task.findUnique({ where: { id } });
+
+    if (!task) {
+      return null;
+    }
+
+    const taskUpdate = {
+      title: title,
+      completed: completed,
+    };
+
+    return prisma.task.update({ where: { id }, data: taskUpdate });
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+  
+    const task = await prisma.task.findUnique({ where: { id } });
+
+    if (!task) {
+      return false;
+    }
+
+    await prisma.task.delete({ where: { id } });
+
+    return true;
+  }
 }

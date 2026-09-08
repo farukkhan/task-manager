@@ -1,47 +1,73 @@
 import { Request, Response } from "express";
-import {TaskService} from "../services/TaskService";
+import { TaskService } from "../services/TaskService";
 import { inject, injectable } from "tsyringe";
+import { IdParser } from "../validators/IdParser";
 
 @injectable()
-export class TaskController{
+export class TaskController {
+  constructor(@inject(TaskService) private taskService: TaskService) {}
 
-constructor(@inject(TaskService) private taskService: TaskService){}
+  async GetTasks(req: Request, res: Response) {
+    const tasks = await this.taskService.getTasks();
 
-async GetTasks(req: Request, res: Response){
+    res.status(200).json(tasks);
+  }
 
- const tasks =await this.taskService.getTasks();
+  async GetTaskById(req: Request, res: Response) {
+    const { isValid, id } = IdParser.ParseId(req);
 
- res.status(200).json(tasks);
+    if (!isValid) {
+      res.status(400).json({ error: "Invalid task ID" });
+      return;
+    }
 
-}
+    const task = await this.taskService.getTaskById(id);
 
-async GetTaskById(req: Request, res: Response){
- const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
- const id = parseInt(idParam, 0);
+    if (task === null) {
+      res.status(404).json({ error: "Task not found" });
+    } else {
+      res.status(200).json(task);
+    }
+  }
 
- if(id==0 || isNaN(id))
- {
-  res.status(400).json({ error: "Invalid task ID" });
-  return;
- }
+  async CreateTask(req: Request, res: Response) {
+    const { title } = req.body;
+    const createdTask = await this.taskService.createTask(title);
+    res.status(201).json(createdTask);
+  }
 
- const task = await this.taskService.getTaskById(id);
+  async UpdateTask(req: Request, res: Response) {
+    const { isValid, id } = IdParser.ParseId(req);
 
-if(task === null)
- {
-  res.status(404).json({ error: "Task not found" });
- }
- else
- {
-  res.status(200).json(task);
- }
+    if (!isValid) {
+      res.status(400).json({ error: "Invalid task ID" });
+      return;
+    }
 
-}
+    const { title, completed } = req.body;
 
-async CreateTask(req: Request, res: Response){
- const {title} = req.body;
- const createdTask = await this.taskService.createTask(title);
- res.status(201).json(createdTask);
-}
+    const updatedTask = await this.taskService.updateTask(id, title, completed);
 
+    if (!updatedTask) {
+      res.status(404).json({ error: "Task not found" });
+    } else {
+      res.status(200).json(updatedTask);
+    }
+  }
+
+  async DeleteTask(req: Request, res: Response) {
+    const { isValid, id } = IdParser.ParseId(req);
+
+    if (!isValid) {
+      res.status(400).json({ error: "Invalid task ID" });
+      return;
+    }
+
+    const isDeleted = await this.taskService.deleteTask(id);
+    if (!isDeleted) {
+      res.status(404).json({ error: "Task not found" });
+    } else {
+      res.status(204).send();
+    }
+  }
 }

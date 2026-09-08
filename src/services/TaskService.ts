@@ -1,28 +1,34 @@
 import { Task } from "../models/Task";
-import {ITaskRepository} from "../repositories/ITaskRepository";
-import {injectable, inject} from "tsyringe";
-
+import { ITaskRepository } from "../repositories/ITaskRepository";
+import { injectable, inject } from "tsyringe";
 
 @injectable()
-export class TaskService{
+export class TaskService {
+  constructor(
+    @inject("ITaskRepository") private taskRepository: ITaskRepository,
+  ) {}
 
-constructor(@inject("ITaskRepository") private taskRepository: ITaskRepository){
+  async getTasks() {
+    return this.taskRepository.getTasks();
+  }
 
-}
+  async getTaskById(id: number) {
+    return this.taskRepository.getTaskById(id);
+  }
 
-async getTasks()
-{
-  return this.taskRepository.getTasks();
-}
+  async createTask(title: string): Promise<Task> {
+    return this.taskRepository.createTask(title);
+  }
 
-async getTaskById(id:number)
-{
-  return this.taskRepository.getTaskById(id);
-}
+  async updateTask(
+    id: number,
+    title: string,
+    completed: boolean,
+  ): Promise<Task | null> {
+    return this.taskRepository.updateTask(id, title, completed);
+  }
 
-async createTask(title:string): Promise<Task>
-{
-  return this.taskRepository.createTask(title);
-}
-
+  async deleteTask(id: number): Promise<boolean> {
+    return this.taskRepository.deleteTask(id);
+  }
 }
