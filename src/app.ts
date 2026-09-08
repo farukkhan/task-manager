@@ -2,12 +2,13 @@ import "reflect-metadata";
 import express, { Request, Response } from "express";
 import { TaskController } from "./controllers/TaskController";
 import { container } from "./containers/container";
-import { errorHandler } from "./middlewares/errorHandler";
+import { ErrorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 app.use(express.json());
 
 const taskController = container.resolve(TaskController);
+const errorHandler = container.resolve(ErrorHandler);
 
 app.get("/api/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
@@ -33,7 +34,7 @@ app.delete("/api/tasks/:id", async (req: Request, res: Response) => {
   await taskController.deleteTask(req, res);
 });
 
-app.use(errorHandler);
+app.use(errorHandler.handler.bind(errorHandler));
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
