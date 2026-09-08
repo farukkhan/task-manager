@@ -8,14 +8,14 @@ import { TaskValidator } from "../validators/TaskValidator";
 export class TaskController {
   constructor(@inject(TaskService) private taskService: TaskService) {}
 
-  async GetTasks(req: Request, res: Response) {
+  async getTasks(req: Request, res: Response) {
     const tasks = await this.taskService.getTasks();
 
     res.status(200).json(tasks);
   }
 
-  async GetTaskById(req: Request, res: Response) {
-    const { isValid, id } = IdParser.ParseId(req);
+  async getTaskById(req: Request, res: Response) {
+    const { isValid, id } = IdParser.parseId(req);
 
     if (!isValid) {
       res.status(400).json({ error: "Invalid task ID" });
@@ -31,10 +31,10 @@ export class TaskController {
     }
   }
 
-  async CreateTask(req: Request, res: Response) {
+  async createTask(req: Request, res: Response) {
     const { title } = req.body;
 
-    const titleValidation = TaskValidator.ValidateTitle(title);
+    const titleValidation = TaskValidator.validateTitle(title);
     if (!titleValidation.isValid) {
       res.status(400).json({ error: titleValidation.error });
       return;
@@ -44,8 +44,8 @@ export class TaskController {
     res.status(201).json(createdTask);
   }
 
-  async UpdateTask(req: Request, res: Response) {
-    const { isValid, id } = IdParser.ParseId(req);
+  async updateTask(req: Request, res: Response) {
+    const { isValid, id } = IdParser.parseId(req);
 
     if (!isValid) {
       res.status(400).json({ error: "Invalid task ID" });
@@ -54,7 +54,7 @@ export class TaskController {
 
     const { title, completed } = req.body;
 
-    const updateValidation = TaskValidator.ValidateUpdateData(title, completed);
+    const updateValidation = TaskValidator.validateUpdateData(title, completed);
     if (!updateValidation.isValid) {
       res.status(400).json({ error: updateValidation.error });
       return;
@@ -73,8 +73,8 @@ export class TaskController {
     }
   }
 
-  async DeleteTask(req: Request, res: Response) {
-    const { isValid, id } = IdParser.ParseId(req);
+  async deleteTask(req: Request, res: Response) {
+    const { isValid, id } = IdParser.parseId(req);
 
     if (!isValid) {
       res.status(400).json({ error: "Invalid task ID" });

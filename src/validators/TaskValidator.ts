@@ -9,7 +9,7 @@ type TaskValidationResult<T> =
     };
 
 export class TaskValidator {
-  static ValidateTitle(title: unknown): TaskValidationResult<string> {
+  static validateTitle(title: unknown): TaskValidationResult<string> {
     if (typeof title !== "string" || title.trim().length === 0) {
       return {
         isValid: false,
@@ -23,7 +23,7 @@ export class TaskValidator {
     };
   }
 
-  static ValidateCompleted(completed: unknown): TaskValidationResult<boolean> {
+  static validateCompleted(completed: unknown): TaskValidationResult<boolean> {
     if (typeof completed !== "boolean") {
       return {
         isValid: false,
@@ -37,16 +37,16 @@ export class TaskValidator {
     };
   }
 
-  static ValidateUpdateData(
+  static validateUpdateData(
     title: unknown,
     completed: unknown,
   ): TaskValidationResult<{ title: string; completed: boolean }> {
-    const titleValidation = this.ValidateTitle(title);
+    const titleValidation = this.validateTitle(title);
     if (!titleValidation.isValid) {
       return titleValidation;
     }
 
-    const completedValidation = this.ValidateCompleted(completed);
+    const completedValidation = this.validateCompleted(completed);
     if (!completedValidation.isValid) {
       return completedValidation;
     }

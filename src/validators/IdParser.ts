@@ -11,7 +11,7 @@ type ParseIdResult =
     };
 
 export class IdParser {
-  static ParseId(req: Request): ParseIdResult {
+  static parseId(req: Request): ParseIdResult {
     const paramId = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;

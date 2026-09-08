@@ -2,6 +2,7 @@ import "reflect-metadata";
 import express, { Request, Response } from "express";
 import { TaskController } from "./controllers/TaskController";
 import { container } from "./containers/container";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 app.use(express.json());
@@ -13,24 +14,26 @@ app.get("/api/health", (req: Request, res: Response) => {
 });
 
 app.get("/api/tasks", async (req: Request, res: Response) => {
-  await taskController.GetTasks(req, res);
+  await taskController.getTasks(req, res);
 });
 
 app.get("/api/tasks/:id", async (req: Request, res: Response) => {
-  await taskController.GetTaskById(req, res);
+  await taskController.getTaskById(req, res);
 });
 
 app.post("/api/tasks", async (req: Request, res: Response) => {
-  await taskController.CreateTask(req, res);
+  await taskController.createTask(req, res);
 });
 
 app.put("/api/tasks/:id", async (req: Request, res: Response) => {
-  await taskController.UpdateTask(req, res);
+  await taskController.updateTask(req, res);
 });
 
 app.delete("/api/tasks/:id", async (req: Request, res: Response) => {
-  await taskController.DeleteTask(req, res);
+  await taskController.deleteTask(req, res);
 });
+
+app.use(errorHandler);
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
