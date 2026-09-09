@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { ILogger } from "../logging/ILogger";
 
 @injectable()
-export class ErrorHandler {
+export class ErrorHandlerMiddleware {
   constructor(@inject("ILogger") private logger: ILogger) {}
 
   handler(error: unknown, req: Request, res: Response, next: NextFunction) {

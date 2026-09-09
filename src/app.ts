@@ -2,14 +2,14 @@ import "reflect-metadata";
 import express, { Request, Response } from "express";
 import { TaskController } from "./controllers/TaskController";
 import { container } from "./containers/container";
-import { ErrorHandler } from "./middlewares/errorHandler";
 import { TaskValidationMiddleware } from "./middlewares/TaskValidationMiddleware";
+import { ErrorHandlerMiddleware } from "./middlewares/ErrorHandlerMiddleware";
 
 const app = express();
 app.use(express.json());
 
 const taskController = container.resolve(TaskController);
-const errorHandler = container.resolve(ErrorHandler);
+const errorHandler = container.resolve(ErrorHandlerMiddleware);
 const taskValidationMiddleware = container.resolve(TaskValidationMiddleware);
 
 app.get("/api/health", (req: Request, res: Response) => {
