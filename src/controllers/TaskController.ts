@@ -5,6 +5,7 @@ import { ILogger } from "../logging/ILogger";
 import { TaskIdParamDto } from "../dtos/TaskIdParamDto";
 import { CreateTaskDto } from "../dtos/CreateTaskDto";
 import { UpdateTaskDto } from "../dtos/UpdateTaskDto";
+import { TaskMapper } from "../mappers/TaskMapper";
 
 @injectable()
 export class TaskController {
@@ -16,7 +17,7 @@ export class TaskController {
   async getTasks(req: Request, res: Response) {
     const tasks = await this.taskService.getTasks();
 
-    res.status(200).json(tasks);
+    res.status(200).json(TaskMapper.toResponseDtoList(tasks));
   }
 
   async getTaskById(
@@ -30,13 +31,13 @@ export class TaskController {
       res.status(404).json({ error: "Task not found" });
       this.logger.warn(`Task not found with Id: ${req.params.id}`);
     } else {
-      res.status(200).json(task);
+      res.status(200).json(TaskMapper.toResponseDto(task));
     }
   }
 
   async createTask(req: Request, res: Response, createTaskDto: CreateTaskDto) {
     const createdTask = await this.taskService.createTask(createTaskDto.title);
-    res.status(201).json(createdTask);
+    res.status(201).json(TaskMapper.toResponseDto(createdTask));
   }
 
   async updateTask(req: Request, res: Response, updateTaskDto: UpdateTaskDto) {
@@ -51,7 +52,7 @@ export class TaskController {
     if (!updatedTask) {
       res.status(404).json({ error: "Task not found" });
     } else {
-      res.status(200).json(updatedTask);
+      res.status(200).json(TaskMapper.toResponseDto(updatedTask));
     }
   }
 

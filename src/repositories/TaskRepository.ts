@@ -6,7 +6,6 @@ import { prisma } from "../database/prisma";
 @injectable()
 export class TaskRepository implements ITaskRepository {
   async getTasks(): Promise<Task[]> {
-    throw new Error("Method not implemented.");
     return prisma.task.findMany();
   }
 
