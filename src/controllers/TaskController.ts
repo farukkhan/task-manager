@@ -40,13 +40,6 @@ export class TaskController {
   async createTask(req: Request, res: Response) {
     const { title } = req.body;
 
-    const titleValidation = TaskValidator.validateTitle(title);
-    if (!titleValidation.isValid) {
-      res.status(400).json({ error: titleValidation.error });
-      this.logger.warn(`Invalid task title received: ${title}`);
-      return;
-    }
-
     const createdTask = await this.taskService.createTask(title);
     res.status(201).json(createdTask);
   }
