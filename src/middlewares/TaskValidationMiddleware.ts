@@ -3,21 +3,25 @@ import { inject, injectable } from "tsyringe";
 import { ILogger } from "../logging/ILogger";
 import { IdParser } from "../validators/IdParser";
 import { TaskValidator } from "../validators/TaskValidator";
+import { TaskIdParamDto } from "../dtos/TaskIdParamDto";
+import { CreateTaskDto } from "../dtos/CreateTaskDto";
+import { UpdateTaskDto } from "../dtos/UpdateTaskDto";
 
 @injectable()
 export class TaskValidationMiddleware {
   constructor(@inject("ILogger") private logger: ILogger) {}
 
   validateTaskId(req: Request, res: Response, next: NextFunction) {
-    const { isValid, id } = IdParser.parseId(req);
+    const parsedId = IdParser.parseId(req);
 
-    if (!isValid) {
+    if (!parsedId.isValid) {
       res.status(400).json({ error: "Invalid task ID" });
       this.logger.warn(`Invalid task ID received: ${req.params.id}`);
       return;
     }
 
-    req.taskId = id;
+    const taskIdParam: TaskIdParamDto = { id: parsedId.id };
+    res.locals.params = taskIdParam;
 
     next();
   }
@@ -32,6 +36,11 @@ export class TaskValidationMiddleware {
       this.logger.warn(`Invalid task title received: ${title}`);
       return;
     }
+
+    const createTaskDto: CreateTaskDto = {
+      title: titleValidation.value,
+    };
+    res.locals.params = createTaskDto;
 
     next();
   }
@@ -58,7 +67,13 @@ export class TaskValidationMiddleware {
       return;
     }
 
-    req.taskId = id;
+    const updateTaskDto: UpdateTaskDto = {
+      id,
+      title: updateValidation.value.title,
+      completed: updateValidation.value.completed,
+    };
+
+    res.locals.params = updateTaskDto;
 
     next();
   }

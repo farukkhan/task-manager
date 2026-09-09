@@ -1,4 +1,4 @@
-type TaskValidationResult<T> =
+export type TaskValidationResult<T> =
   | {
       isValid: true;
       value: T;

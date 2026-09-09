@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { TaskService } from "../services/TaskService";
 import { inject, injectable } from "tsyringe";
-import { IdParser } from "../validators/IdParser";
-import { TaskValidator } from "../validators/TaskValidator";
 import { ILogger } from "../logging/ILogger";
+import { TaskIdParamDto } from "../dtos/TaskIdParamDto";
+import { CreateTaskDto } from "../dtos/CreateTaskDto";
+import { UpdateTaskDto } from "../dtos/UpdateTaskDto";
 
 @injectable()
 export class TaskController {
@@ -18,8 +19,12 @@ export class TaskController {
     res.status(200).json(tasks);
   }
 
-  async getTaskById(req: Request, res: Response) {
-    const task = await this.taskService.getTaskById(req.taskId!);
+  async getTaskById(
+    req: Request,
+    res: Response,
+    taskIdParamDto: TaskIdParamDto,
+  ) {
+    const task = await this.taskService.getTaskById(taskIdParamDto.id);
 
     if (task === null) {
       res.status(404).json({ error: "Task not found" });
@@ -29,29 +34,18 @@ export class TaskController {
     }
   }
 
-  async createTask(req: Request, res: Response) {
-    const { title } = req.body;
-
-    const createdTask = await this.taskService.createTask(title);
+  async createTask(req: Request, res: Response, createTaskDto: CreateTaskDto) {
+    const createdTask = await this.taskService.createTask(createTaskDto.title);
     res.status(201).json(createdTask);
   }
 
-  async updateTask(req: Request, res: Response) {
+  async updateTask(req: Request, res: Response, updateTaskDto: UpdateTaskDto) {
     const { title, completed } = req.body;
 
-    const updateValidation = TaskValidator.validateUpdateData(title, completed);
-    if (!updateValidation.isValid) {
-      res.status(400).json({ error: updateValidation.error });
-      this.logger.warn(
-        `Invalid task update data received: ${JSON.stringify(req.body)}`,
-      );
-      return;
-    }
-
     const updatedTask = await this.taskService.updateTask(
-      req.taskId!,
-      updateValidation.value.title,
-      updateValidation.value.completed,
+      updateTaskDto.id,
+      updateTaskDto.title,
+      updateTaskDto.completed,
     );
 
     if (!updatedTask) {
@@ -61,8 +55,12 @@ export class TaskController {
     }
   }
 
-  async deleteTask(req: Request, res: Response) {
-    const isDeleted = await this.taskService.deleteTask(req.taskId!);
+  async deleteTask(
+    req: Request,
+    res: Response,
+    taskIdParamDto: TaskIdParamDto,
+  ) {
+    const isDeleted = await this.taskService.deleteTask(taskIdParamDto.id);
     if (!isDeleted) {
       res.status(404).json({ error: "Task not found" });
       this.logger.warn(`Task not found with Id: ${req.params.id}`);
