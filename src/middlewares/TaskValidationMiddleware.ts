@@ -17,6 +17,8 @@ export class TaskValidationMiddleware {
       return;
     }
 
+    req.taskId = id;
+
     next();
   }
 
@@ -55,6 +57,8 @@ export class TaskValidationMiddleware {
       );
       return;
     }
+
+    req.taskId = id;
 
     next();
   }

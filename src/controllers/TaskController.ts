@@ -19,15 +19,7 @@ export class TaskController {
   }
 
   async getTaskById(req: Request, res: Response) {
-    const { isValid, id } = IdParser.parseId(req);
-
-    if (!isValid) {
-      res.status(400).json({ error: "Invalid task ID" });
-      this.logger.warn(`Invalid task ID received: ${req.params.id}`);
-      return;
-    }
-
-    const task = await this.taskService.getTaskById(id);
+    const task = await this.taskService.getTaskById(req.taskId!);
 
     if (task === null) {
       res.status(404).json({ error: "Task not found" });
@@ -45,14 +37,6 @@ export class TaskController {
   }
 
   async updateTask(req: Request, res: Response) {
-    const { isValid, id } = IdParser.parseId(req);
-
-    if (!isValid) {
-      res.status(400).json({ error: "Invalid task ID" });
-      this.logger.warn(`Invalid task ID received: ${req.params.id}`);
-      return;
-    }
-
     const { title, completed } = req.body;
 
     const updateValidation = TaskValidator.validateUpdateData(title, completed);
@@ -65,7 +49,7 @@ export class TaskController {
     }
 
     const updatedTask = await this.taskService.updateTask(
-      id,
+      req.taskId!,
       updateValidation.value.title,
       updateValidation.value.completed,
     );
@@ -78,15 +62,7 @@ export class TaskController {
   }
 
   async deleteTask(req: Request, res: Response) {
-    const { isValid, id } = IdParser.parseId(req);
-
-    if (!isValid) {
-      res.status(400).json({ error: "Invalid task ID" });
-      this.logger.warn(`Invalid task ID received: ${req.params.id}`);
-      return;
-    }
-
-    const isDeleted = await this.taskService.deleteTask(id);
+    const isDeleted = await this.taskService.deleteTask(req.taskId!);
     if (!isDeleted) {
       res.status(404).json({ error: "Task not found" });
       this.logger.warn(`Task not found with Id: ${req.params.id}`);
