@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import { TaskService } from "@task-manager/application";
+import { ILogger, TaskService } from "@task-manager/application";
 import { inject, injectable } from "tsyringe";
-import { ILogger } from "@task-manager/application";
 import { TaskIdParamDto } from "../dtos/TaskIdParamDto";
 import { CreateTaskDto } from "../dtos/CreateTaskDto";
 import { UpdateTaskDto } from "../dtos/UpdateTaskDto";
@@ -29,7 +28,8 @@ export class TaskController {
 
     if (task === null) {
       res.status(404).json({ error: "Task not found" });
-      this.logger.warn(`Task not found with Id: ${req.params.id}`);
+
+      this.logger.warn(`Task not found with Id: ${taskIdParamDto.id}`);
     } else {
       res.status(200).json(TaskResponseMapper.toResponseDto(task));
     }
@@ -37,12 +37,11 @@ export class TaskController {
 
   async createTask(req: Request, res: Response, createTaskDto: CreateTaskDto) {
     const createdTask = await this.taskService.createTask(createTaskDto.title);
+
     res.status(201).json(TaskResponseMapper.toResponseDto(createdTask));
   }
 
   async updateTask(req: Request, res: Response, updateTaskDto: UpdateTaskDto) {
-    const { title, completed } = req.body;
-
     const updatedTask = await this.taskService.updateTask(
       updateTaskDto.id,
       updateTaskDto.title,
@@ -62,9 +61,11 @@ export class TaskController {
     taskIdParamDto: TaskIdParamDto,
   ) {
     const isDeleted = await this.taskService.deleteTask(taskIdParamDto.id);
+
     if (!isDeleted) {
       res.status(404).json({ error: "Task not found" });
-      this.logger.warn(`Task not found with Id: ${req.params.id}`);
+
+      this.logger.warn(`Task not found with Id: ${taskIdParamDto.id}`);
     } else {
       res.status(204).send();
     }
