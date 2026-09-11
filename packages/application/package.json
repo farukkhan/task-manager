@@ -1,0 +1,10 @@
+{
+  "name": "@task-manager/application",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@task-manager/domain": "1.0.0"
+  }
+}

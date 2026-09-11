@@ -1,0 +1,10 @@
+{
+  "name": "@task-manager/presentation",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@task-manager/domain": "1.0.0",
+    "@task-manager/application": "1.0.0",
+    "@task-manager/infrastructure": "1.0.0"
+  }
+}
