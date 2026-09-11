@@ -6,6 +6,11 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "@task-manager/application": "1.0.0",
-    "@task-manager/domain": "1.0.0"
+    "@task-manager/domain": "1.0.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0",
+    "tsyringe": "^4.10.0"
   }
 }
