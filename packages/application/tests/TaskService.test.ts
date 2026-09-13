@@ -1,8 +1,8 @@
 import "reflect-metadata";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { TaskService } from "../src/services/TaskService";
-import { ITaskRepository } from "../src/ports/ITaskRepository";
 import { Task } from "@task-manager/domain";
+import { MockTaskRepository } from "./mocks/MockTaskRepository";
 
 describe("TaskService", () => {
   it("should return all tasks", async () => {
@@ -11,18 +11,13 @@ describe("TaskService", () => {
       { id: 2, title: "Task 2", completed: true },
     ];
 
-    const fakeTaskRepository: ITaskRepository = {
-      getTasks: async () => tasks,
-      getTaskById: async (id: number) => tasks[0],
-      createTask: async (title: string) => tasks[0],
-      updateTask: async (id: number, title: string, completed: boolean) =>
-        tasks[0],
-      deleteTask: async (id: number) => true,
-    };
+    const mockTaskRepository = new MockTaskRepository();
+    mockTaskRepository.getTasks.mockResolvedValue(tasks);
 
-    const taskService = new TaskService(fakeTaskRepository);
+    const taskService = new TaskService(mockTaskRepository);
     const result = await taskService.getTasks();
 
     expect(result).toEqual(tasks);
+    expect(mockTaskRepository.getTasks).toHaveBeenCalledTimes(1);
   });
 });
