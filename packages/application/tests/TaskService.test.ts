@@ -27,7 +27,18 @@ describe("TaskService", () => {
     expect(mockTaskRepository.getTasks).toHaveBeenCalledOnce();
   });
 
-  it("Should return the Task with the supplied task id", async () => {
+  it("GetAllTask should ruturn empty array when repository returns empty task array", async () => {
+    const tasks: Task[] = [];
+
+    mockTaskRepository.getTasks.mockResolvedValue(tasks);
+
+    const result = await taskService.getTasks();
+
+    expect(result).toEqual([]);
+    expect(mockTaskRepository.getTasks).toHaveBeenCalledOnce();
+  });
+
+  it("should return the task with the supplied task id", async () => {
     const task: Task = { id: 1, title: "Task 1", completed: true };
 
     mockTaskRepository.getTaskById.mockResolvedValue(task);
@@ -39,7 +50,17 @@ describe("TaskService", () => {
     expect(mockTaskRepository.getTaskById).toHaveBeenCalledWith(1);
   });
 
-  it("Should create task", async () => {
+  it("GetTaskById should return null when repository returns null", async () => {
+    mockTaskRepository.getTaskById.mockResolvedValue(null);
+
+    const result = await taskService.getTaskById(1);
+
+    expect(result).toBeNull();
+    expect(mockTaskRepository.getTaskById).toHaveBeenCalledOnce();
+    expect(mockTaskRepository.getTaskById).toHaveBeenCalledWith(1);
+  });
+
+  it("should create task", async () => {
     const task: Task = { id: 1, title: "Task 1", completed: true };
 
     mockTaskRepository.createTask.mockResolvedValue(task);
@@ -51,7 +72,7 @@ describe("TaskService", () => {
     expect(mockTaskRepository.createTask).toHaveBeenCalledWith("Task 1");
   });
 
-  it("Should Update the task", async () => {
+  it("should update the task", async () => {
     const task: Task = { id: 1, title: "Updated Task 1", completed: false };
 
     mockTaskRepository.updateTask.mockResolvedValue(task);
@@ -67,12 +88,36 @@ describe("TaskService", () => {
     );
   });
 
-  it("Should Delete the task", async () => {
+  it("update task should return null when repository returns null", async () => {
+    mockTaskRepository.updateTask.mockResolvedValue(null);
+
+    const result = await taskService.updateTask(1, "Updated Task 1", false);
+
+    expect(result).toBeNull();
+    expect(mockTaskRepository.updateTask).toHaveBeenCalledOnce();
+    expect(mockTaskRepository.updateTask).toHaveBeenCalledWith(
+      1,
+      "Updated Task 1",
+      false,
+    );
+  });
+
+  it("should delete the task", async () => {
     mockTaskRepository.deleteTask.mockResolvedValue(true);
 
     const result = await taskService.deleteTask(1);
 
     expect(result).toEqual(true);
+    expect(mockTaskRepository.deleteTask).toHaveBeenCalledOnce();
+    expect(mockTaskRepository.deleteTask).toHaveBeenCalledWith(1);
+  });
+
+  it("delete task should return false when repository returns false", async () => {
+    mockTaskRepository.deleteTask.mockResolvedValue(false);
+
+    const result = await taskService.deleteTask(1);
+
+    expect(result).toEqual(false);
     expect(mockTaskRepository.deleteTask).toHaveBeenCalledOnce();
     expect(mockTaskRepository.deleteTask).toHaveBeenCalledWith(1);
   });
