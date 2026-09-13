@@ -1,3 +1,1 @@
-import { Task } from "./entities/Task";
-
-export { Task };
+export { Task } from "./entities/Task";

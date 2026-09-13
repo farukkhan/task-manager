@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "vitest",
     "clean": "tsc -b --clean",
     "build": "tsc -b",
     "dev": "tsx --tsconfig packages/presentation/tsconfig.json packages/presentation/src/app.ts"
@@ -19,7 +20,8 @@
     "@types/pg": "^8.23.1",
     "prisma": "^7.10.0",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   },
   "workspaces": [
     "packages/*"
