@@ -1,10 +1,10 @@
 # Task Manager
 
-A full-stack learning project built to develop hands-on experience with **TypeScript, Node.js, Express, PostgreSQL, Prisma, Clean Architecture, Dependency Injection, and React**.
+A full-stack learning project built to develop hands-on experience with **TypeScript, Node.js, Express, PostgreSQL, Prisma, Clean Architecture, Dependency Injection, automated testing, and React**.
 
 The project is being developed incrementally, with the backend first and a React frontend planned as the next stage.
 
-> **Status:** Backend CRUD API implemented. Automated testing and React frontend are planned/in progress.
+> **Status:** Backend CRUD API implemented. Unit testing implemented. Integration testing is in progress. React frontend is planned as the next major stage.
 
 ---
 
@@ -18,12 +18,14 @@ The project focuses on:
 - Node.js backend development
 - REST API design
 - Clean Architecture
+- Physical package boundaries
 - Dependency Injection
 - PostgreSQL persistence
 - Prisma ORM
 - API validation and error handling
-- Automated testing
+- Unit and integration testing
 - React + TypeScript frontend development
+- Reproducible local development environments
 
 ---
 
@@ -37,7 +39,14 @@ The project focuses on:
 - **Prisma**
 - **PostgreSQL**
 - **tsyringe** — Dependency Injection
-- **Docker** — PostgreSQL development environment
+- **Docker Compose** — PostgreSQL development environment
+
+### Testing
+
+- **Vitest**
+- Unit tests for Application services
+- Integration tests for Infrastructure components
+- PostgreSQL test database
 
 ### Frontend
 
@@ -52,6 +61,7 @@ The project focuses on:
 - TypeScript project references
 - VS Code
 - Git / GitHub
+- Docker Compose
 
 ---
 
@@ -63,7 +73,7 @@ The backend follows a **Clean Architecture-inspired layered structure** with phy
                          ┌─────────────────────┐
                          │     Presentation    │
                          │                     │
-                         │ Express / Controllers│
+                         │ Express / Controllers
                          │ DTOs / Middleware   │
                          └──────────┬──────────┘
                                     │
@@ -97,15 +107,15 @@ The backend follows a **Clean Architecture-inspired layered structure** with phy
 
 ```text
 Domain
-  ↑
+   ↑
 Application
-  ↑
+   ↑
 Infrastructure
 
 Presentation
-  ├── Application
-  ├── Infrastructure
-  └── Domain
+   ├── Application
+   ├── Infrastructure
+   └── Domain
 ```
 
 The important architectural principle is that **business/application code does not depend on infrastructure implementations**.
@@ -138,6 +148,11 @@ This makes infrastructure replaceable and allows the Application layer to be tes
 ```text
 task-manager/
 │
+├── docker/
+│   └── postgres/
+│       └── init/
+│           └── 01-create-databases.sql
+│
 ├── packages/
 │   │
 │   ├── domain/
@@ -167,6 +182,8 @@ task-manager/
 │   │   │   ├── logging/
 │   │   │   ├── mappers/
 │   │   │   └── repositories/
+│   │   ├── tests/
+│   │   │   └── setup.ts
 │   │   └── package.json
 │   │
 │   └── presentation/
@@ -180,11 +197,17 @@ task-manager/
 │       │   └── app.ts
 │       └── package.json
 │
-├── prisma.config.ts
+├── .env.example
+├── .env.test.example
+├── docker-compose.yml
 ├── package.json
+├── prisma.config.ts
 ├── tsconfig.json
+├── vitest.config.ts
 └── README.md
 ```
+
+Local `.env` and `.env.test` files are intentionally not committed to Git.
 
 ---
 
@@ -192,13 +215,13 @@ task-manager/
 
 The current backend exposes the following endpoints:
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | Health check |
-| GET | `/api/tasks` | Get all tasks |
-| GET | `/api/tasks/:id` | Get a task |
-| POST | `/api/tasks` | Create a task |
-| PUT | `/api/tasks/:id` | Update a task |
+| Method | Endpoint         | Description   |
+| ------ | ---------------- | ------------- |
+| GET    | `/api/health`    | Health check  |
+| GET    | `/api/tasks`     | Get all tasks |
+| GET    | `/api/tasks/:id` | Get a task    |
+| POST   | `/api/tasks`     | Create a task |
+| PUT    | `/api/tasks/:id` | Update a task |
 | DELETE | `/api/tasks/:id` | Delete a task |
 
 ### Example Task
@@ -221,15 +244,15 @@ The Application layer defines abstractions:
 
 ```typescript
 interface ITaskRepository {
-    getTasks(): Promise<Task[]>;
-    getTaskById(id: number): Promise<Task | null>;
-    createTask(title: string): Promise<Task>;
-    updateTask(
-        id: number,
-        title: string,
-        completed: boolean
-    ): Promise<Task | null>;
-    deleteTask(id: number): Promise<boolean>;
+  getTasks(): Promise<Task[]>;
+  getTaskById(id: number): Promise<Task | null>;
+  createTask(title: string): Promise<Task>;
+  updateTask(
+    id: number,
+    title: string,
+    completed: boolean,
+  ): Promise<Task | null>;
+  deleteTask(id: number): Promise<boolean>;
 }
 ```
 
@@ -249,7 +272,7 @@ The dependency is registered in the Presentation composition root:
 
 ```typescript
 container.register("ITaskRepository", {
-    useClass: TaskRepository
+  useClass: TaskRepository,
 });
 ```
 
@@ -292,6 +315,137 @@ Domain Task
 ```
 
 This prevents persistence-specific types from leaking into the Application or Domain layers.
+
+---
+
+## 🐳 PostgreSQL Development Environment
+
+PostgreSQL runs through Docker Compose.
+
+```text
+docker compose up -d
+        │
+        ▼
+PostgreSQL
+    │       │
+    ▼       ▼
+taskmanager  taskmanager_test
+```
+
+The Docker initialization script is responsible for **creating the databases**.
+
+Application tables are created by **Prisma migrations**.
+
+This keeps infrastructure setup separate from application schema management.
+
+### Database responsibilities
+
+```text
+Docker Compose
+    │
+    └── PostgreSQL
+          ├── taskmanager
+          └── taskmanager_test
+
+Prisma migrations
+    │
+    ├── Development schema
+    │      └── taskmanager
+    │
+    └── Test schema
+           └── taskmanager_test
+```
+
+The same Prisma migration history is applied independently to both databases.
+
+---
+
+## 🔐 Environment Configuration
+
+Development uses `.env`:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/taskmanager?schema=public"
+```
+
+Testing uses `.env.test`:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/taskmanager_test?schema=public"
+```
+
+Example files are committed to the repository:
+
+```text
+.env.example
+.env.test.example
+```
+
+Actual environment files are local and should not be committed:
+
+```text
+.env
+.env.test
+```
+
+---
+
+## 🔄 Database Migration Workflow
+
+Database migrations are deliberately **explicit**.
+
+### Development database
+
+```bash
+npm run db:migrate
+```
+
+This applies pending Prisma migrations to:
+
+```text
+taskmanager
+```
+
+### Test database
+
+```bash
+npm run db:migrate:test
+```
+
+This applies pending Prisma migrations to:
+
+```text
+taskmanager_test
+```
+
+### Why migrations are explicit
+
+Running tests does **not** automatically migrate the test database.
+
+This gives the developer control over when a new schema change becomes available for testing.
+
+For example:
+
+```text
+Developer creates migration
+        │
+        ▼
+Development database
+        │
+        ▼
+Developer verifies feature
+        │
+        ▼
+Developer decides migration is ready
+        │
+        ▼
+Test database migration
+        │
+        ▼
+Integration tests
+```
+
+This prevents an unfinished database change from being silently applied to the test environment.
 
 ---
 
@@ -361,7 +515,7 @@ Install:
 
 - Node.js
 - npm
-- Docker
+- Docker Desktop
 - Git
 
 ---
@@ -383,36 +537,57 @@ npm install
 
 ---
 
-### 3. Start PostgreSQL
+### 3. Configure environment files
 
-The project uses PostgreSQL in Docker.
+Create the development environment file from the example:
 
-Example:
-
-```bash
-docker start mypostres
+```powershell
+Copy-Item .env.example .env
 ```
 
-If the container does not exist yet, create a PostgreSQL container appropriate for your local environment.
+Create the test environment file:
+
+```powershell
+Copy-Item .env.test.example .env.test
+```
+
+Review the connection settings if necessary.
 
 ---
 
-### 4. Configure the database
+### 4. Start PostgreSQL
 
-Create a `.env` file in the project root:
+Start the Docker environment:
 
-```env
-DATABASE_URL="postgresql://postgres:<password>@127.0.0.1:5432/taskmanager"
+```bash
+docker compose up -d
 ```
 
-Do not commit `.env` to Git.
+This creates the PostgreSQL container and, on a fresh database volume:
+
+- `taskmanager`
+- `taskmanager_test`
 
 ---
 
-### 5. Run Prisma migrations
+### 5. Initialize database schemas
+
+Run:
 
 ```bash
-npx prisma migrate dev
+npm run setup
+```
+
+This applies the current Prisma migrations to both:
+
+- Development database
+- Test database
+
+The setup command is equivalent to:
+
+```bash
+npm run db:migrate
+npm run db:migrate:test
 ```
 
 ---
@@ -447,22 +622,22 @@ http://localhost:3000/api/health
 
 ## 🧪 Testing
 
-Automated tests are part of the planned development roadmap.
+The project uses **Vitest** for automated testing.
 
-The intended testing strategy is:
+Testing is organized according to architectural boundaries.
 
 ```text
 Application
     │
     └── Unit Tests
           │
-          └── Mock ITaskRepository
+          └── Test doubles / mock repository
 
 Infrastructure
     │
     └── Integration Tests
           │
-          └── PostgreSQL / Prisma
+          └── Real Prisma + PostgreSQL
 
 Presentation
     │
@@ -471,7 +646,54 @@ Presentation
           └── HTTP requests
 ```
 
-This allows each layer to be tested at the appropriate level.
+### Unit tests
+
+Application services can be tested without PostgreSQL.
+
+For example:
+
+```text
+TaskService
+    │
+    └── Mock ITaskRepository
+```
+
+This keeps unit tests fast and focused on application behavior.
+
+### Integration tests
+
+Infrastructure components are tested using the real database:
+
+```text
+TaskRepository
+      │
+      ▼
+Prisma
+      │
+      ▼
+PostgreSQL
+      │
+      ▼
+taskmanager_test
+```
+
+The test database is deliberately separate from the development database.
+
+### Running tests
+
+```bash
+npm test
+```
+
+Tests do **not** automatically apply database migrations.
+
+If a new database migration needs to be tested, explicitly run:
+
+```bash
+npm run db:migrate:test
+```
+
+before running the tests.
 
 ---
 
@@ -482,7 +704,11 @@ This allows each layer to be tested at the appropriate level.
 - [x] TypeScript project setup
 - [x] Node.js + Express setup
 - [x] PostgreSQL setup
+- [x] Docker Compose PostgreSQL environment
 - [x] Prisma integration
+- [x] Prisma migrations
+- [x] Separate development and test databases
+- [x] Reproducible database setup
 - [x] Clean Architecture package boundaries
 - [x] Domain entity
 - [x] Application service
@@ -493,7 +719,7 @@ This allows each layer to be tested at the appropriate level.
 - [x] Request validation
 - [x] Error handling
 - [x] CRUD REST API
-- [ ] Automated unit tests
+- [x] Unit tests
 - [ ] Integration tests
 - [ ] API tests
 - [ ] Authentication / authorization
@@ -533,6 +759,7 @@ It demonstrates practical experience with:
 - **REST APIs**
 - **PostgreSQL**
 - **Prisma**
+- **Docker**
 - **Dependency Injection**
 - **Clean Architecture**
 - **SOLID principles**
@@ -541,8 +768,9 @@ It demonstrates practical experience with:
 - **Separation of concerns**
 - **API validation**
 - **Error handling**
-- **Automated testing**
-- **React + TypeScript** *(as the frontend evolves)*
+- **Unit testing**
+- **Integration testing**
+- **React + TypeScript** as the frontend evolves
 
 ---
 
@@ -565,7 +793,7 @@ The project will continue evolving from a backend-focused TypeScript application
                              │
                              ▼
                   ┌──────────────────────┐
-                  │   Clean Architecture │
+                  │  Clean Architecture │
                   │                      │
                   │ Domain               │
                   │ Application          │
@@ -579,4 +807,4 @@ The project will continue evolving from a backend-focused TypeScript application
                   └──────────────────────┘
 ```
 
-The goal is not simply to build a task manager, but to use the project as a practical environment for learning and demonstrating **modern TypeScript/Node.js full-stack development**.
+The goal is not simply to build a task manager, but to use the project as a practical environment for learning and demonstrating **modern TypeScript/Node.js full-stack development and enterprise software engineering practices**.
