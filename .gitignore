@@ -16,6 +16,8 @@ backup/
 .claude/
 .cursor/
 .devin/
+Claude.md
+docs/*
 
 # Environment and Secret Files
 .env
@@ -37,7 +39,11 @@ coverage/
 .vitest/
 .jest/
 
+#Claude
+
+
 # IDE and Editor Directories
+.vs/*
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
